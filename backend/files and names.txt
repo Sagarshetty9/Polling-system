@@ -1,0 +1,52 @@
+backend\config\userDB.js
+  Export: export default connectDb
+
+backend\controller\createPoll.js
+  Export: export default createPollController
+
+backend\controller\login.js
+  Export: export const loginController
+
+backend\controller\register.js
+  Export: export const registerController
+
+backend\controller\teamController.js
+  Export: export { createTeamController }
+
+backend\files and names.txt
+  Export: None
+
+backend\index.js
+  Export: None
+
+backend\middleware\authMiddleware.js
+  Export: export const protect
+
+backend\model\pollingSchema.js
+  Export: export default mongoose.model('Poll', pollSchema)
+
+backend\model\teamSchema.js
+  Export: export default mongoose.model('Team', teamSchema)
+
+backend\model\userSchema.js
+  Export: export default mongoose.model("User", userSchema)
+
+backend\package-lock.json
+  Export: None
+
+backend\package.json
+  Export: None
+
+backend\routes\authRouter.js
+  Export: export default authRouter
+
+backend\routes\pollRouter.js
+  Export: export default pollRouter
+
+backend\routes\teamRouter.js
+  Export: export default teamRouter
+
+
+User 
+Team
+Poll 
