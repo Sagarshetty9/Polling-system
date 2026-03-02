@@ -4,8 +4,14 @@ import { Button } from "../ui/button";
 
 const Pollsarea = ({ activePoll, onVote }) => {
   const [minutesLeft, setMinutesLeft] = useState(null);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
+  const [lastTotalVotes, setLastTotalVotes] = useState(0);
   const options = activePoll?.options || [];
   const maxVotes = options.reduce((max, option) => Math.max(max, option?.votes || 0), 0);
+  const totalVotes = useMemo(
+    () => options.reduce((sum, option) => sum + (option?.votes || 0), 0),
+    [options]
+  );
   const barColors = [
     "bg-yellow-500/80",
     "bg-emerald-500/80",
@@ -37,6 +43,25 @@ const Pollsarea = ({ activePoll, onVote }) => {
 
   const isEnded = useMemo(() => minutesLeft === 0, [minutesLeft]);
 
+  useEffect(() => {
+    if (!activePoll) {
+      setLastUpdatedAt(null);
+      setLastTotalVotes(0);
+      return;
+    }
+
+    setLastUpdatedAt(null);
+    setLastTotalVotes(totalVotes);
+  }, [activePoll?._id]);
+
+  useEffect(() => {
+    if (!activePoll) return;
+    if (totalVotes !== lastTotalVotes) {
+      setLastUpdatedAt(new Date());
+      setLastTotalVotes(totalVotes);
+    }
+  }, [activePoll?._id, totalVotes, lastTotalVotes]);
+
   if (!activePoll) {
     return (
       <Card className="h-full">
@@ -58,6 +83,11 @@ const Pollsarea = ({ activePoll, onVote }) => {
               : `Poll will end in ${activePoll.durationMinutes} minutes`}
         </CardTitle>
         <CardTitle className="text-center text-2xl">{activePoll.question}</CardTitle>
+        {lastUpdatedAt && (
+          <p className="text-center text-xs uppercase tracking-widest text-muted-foreground">
+            Last updated {lastUpdatedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          </p>
+        )}
       </CardHeader>
 
       <CardContent className="space-y-6">
