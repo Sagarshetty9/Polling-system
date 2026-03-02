@@ -22,7 +22,7 @@ const app = express();
 //Middleware
 app.use(express.json()) 
 app.use(cors({
-  origin: ["http://localhost:5173", "https://polling-system-gnp54ul62-sagarshetty9s-projects.vercel.app/"],
+  origin: ["http://localhost:5173", "https://polling-system-gnp54ul62-sagarshetty9s-projects.vercel.app"],
   credentials: true
 }));
 
