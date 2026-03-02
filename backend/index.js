@@ -20,10 +20,19 @@ await connectDb();
 const app = express();
 
 //Middleware
-app.use(express.json()) 
+app.use(express.json());
+
+// This regex allows localhost AND any subdomain of vercel.app
+const allowedOrigins = [
+  "http://localhost:5173", 
+  /\.vercel\.app$/ 
+];
+
 app.use(cors({
-  origin: ["http://localhost:5173", "https://polling-system-gnp54ul62-sagarshetty9s-projects.vercel.app"],
-  credentials: true
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 
