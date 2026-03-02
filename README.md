@@ -1,3 +1,6 @@
+## 🚀 Live Demo
+Check out the live application here: [Polling System Live](https://polling-system-dusky.vercel.app/)
+
 # Polling System (Fullstack)
 
 Fullstack polling app with team-based polls, built with an Express/MongoDB backend and a Vite + React frontend.
