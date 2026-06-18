@@ -5,7 +5,11 @@ const normalizeTeamName = (value = "") => value.trim().replace(/\s+/g, " ");
 
 const escapeRegex = (value = "") => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const findTeamByName = (teamName) => {
+
+
+///FIND TEAM BY NAME
+
+export const findTeamByName = (teamName) => {
   const normalized = normalizeTeamName(teamName);
   const nameRegex = new RegExp(`^${escapeRegex(normalized)}$`, "i");
   return Team.findOne({ teamName: nameRegex });
@@ -14,7 +18,9 @@ const findTeamByName = (teamName) => {
 
 
 
-const getMyTeams = async (req, res) => {
+//GET MY TEAMS CONTROLLER
+
+export const getMyTeams = async (req, res) => {
   try {
     const teams = await Team.find({ members: req.user.userId })
       .sort({ createdAt: -1 })
@@ -30,7 +36,9 @@ const getMyTeams = async (req, res) => {
 
 
 
-const createTeamController = async (req, res) => {
+//CREATE TEAM CONTROLLER
+
+export const createTeamController = async (req, res) => {
   try {
     const { teamName } = req.body;
     const normalizedName = normalizeTeamName(teamName);
@@ -65,7 +73,9 @@ const createTeamController = async (req, res) => {
 
 
 
-const joinTeamController = async (req, res) => {
+//JOIN TEAM CONTROLLER
+
+export const joinTeamController = async (req, res) => {
   try {
     const { teamName } = req.body;
     const normalizedName = normalizeTeamName(teamName);
@@ -110,7 +120,9 @@ const joinTeamController = async (req, res) => {
 
 
 
-const leaveTeamController = async (req, res) => {
+//LEAVE TEAM CONTROLLER
+
+export const leaveTeamController = async (req, res) => {
   try {
     const { teamId } = req.params;
 
@@ -141,7 +153,9 @@ const leaveTeamController = async (req, res) => {
 
 
 
-const getTeamByIdController = async (req, res) => {
+//GET TEAM BY ID CONTROLLER
+
+export const getTeamByIdController = async (req, res) => {
   try {
     const { teamId } = req.params;
 
@@ -166,8 +180,3 @@ const getTeamByIdController = async (req, res) => {
 };
 
 
-
-
-
-
-export { createTeamController, getMyTeams, joinTeamController, leaveTeamController, getTeamByIdController };

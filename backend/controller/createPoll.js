@@ -1,23 +1,21 @@
 import Poll from '../model/pollingSchema.js';
 import Team from '../model/teamSchema.js';
 
-const createPoll = async (req, res) => {
+
+//CREATE POLL CONTROLLER
+
+export const createPoll = async (req, res) => {
   try {
     const { teamId } = req.params;
-    const { question, options = [], durationMinutes = 60 } = req.body;
-
-    
+    const { question, options = [], durationMinutes = 20 } = req.body;
     const team = await Team.findOne({ _id: teamId, members: req.user.userId });
-    if (!team) return res.status(403).json({ message: "Team not found or Access Denied" });
+
+    if (!team) return res.status(403).json({ message: "Team not found" });
 
     if (!question || !question.trim()) {
-      return res.status(400).json({ message: "Question is required" });
+      return res.status(400).json({ message: "Question is required to create a poll" });
     }
 
-    if (!Array.isArray(options)) {
-      return res.status(400).json({ message: "Options must be an array" });
-    }
-  
     const formattedOptions = options
       .filter(opt => opt.trim() !== "") 
       .map(opt => ({ text: opt }));
@@ -26,7 +24,7 @@ const createPoll = async (req, res) => {
       return res.status(400).json({ message: "Provide at least 2 options" });
     }
 
-    const safeDuration = Math.max(1, Number(durationMinutes) || 60);
+    const safeDuration = Math.max(1, Number(durationMinutes) || 20);
     const poll = new Poll({
       teamId,
       question: question.trim(),
@@ -47,7 +45,10 @@ const createPoll = async (req, res) => {
 
 
 
-const getTeamPolls = async (req, res) => {
+
+//GET TEAM POLLS CONTROLLER
+
+export const getTeamPolls = async (req, res) => {
   try {
     const { teamId } = req.params;
     const polls = await Poll.find({ teamId });
@@ -70,7 +71,11 @@ const getTeamPolls = async (req, res) => {
 
 
 
-const votePollOption = async (req, res) => {
+
+
+//VOTE POLL OPTION CONTROLLER
+
+export const votePollOption = async (req, res) => {
   try {
     const { pollId } = req.params;
     const { optionId } = req.body;
@@ -104,8 +109,6 @@ const votePollOption = async (req, res) => {
     if (!poll.userVotes) {
       poll.userVotes = [];
     }
-
-
 
     const existingVote = poll.userVotes.find(
       (vote) => vote.userId.toString() === req.user.userId
@@ -143,7 +146,10 @@ const votePollOption = async (req, res) => {
 
 
 
-const deletePoll = async (req, res) => {
+
+//DELETE POLL CONTROLLER
+
+export const deletePoll = async (req, res) => {
   try {
     const { pollId } = req.params;
 
@@ -171,4 +177,4 @@ const deletePoll = async (req, res) => {
 
 
 
-export { createPoll, getTeamPolls, votePollOption, deletePoll };
+

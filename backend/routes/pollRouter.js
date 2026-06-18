@@ -1,9 +1,9 @@
-import express from 'express';
+import { Router } from 'express';
 import { createPoll, getTeamPolls, votePollOption, deletePoll } from '../controller/createPoll.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 
-const pollRouter = express.Router();
+const pollRouter = Router();
 
 pollRouter.post("/createPoll/:teamId", protect, createPoll);
 pollRouter.get("/teamPoll/:teamId", protect, getTeamPolls);

@@ -1,4 +1,4 @@
-import express from "express";
+import { Router } from "express";
 import { protect } from "../middleware/authMiddleware.js";
 import {
   createTeamController,
@@ -9,7 +9,7 @@ import {
 } from "../controller/teamController.js";
 
 
- const teamRouter = express.Router();
+ const teamRouter = Router();
 
 teamRouter.get("/myTeams", protect, getMyTeams);
 teamRouter.get("/myTeams/:teamId", protect, getTeamByIdController);

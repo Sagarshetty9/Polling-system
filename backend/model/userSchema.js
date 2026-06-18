@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import Team from "./teamSchema.js";
 
 
-// User Schema
+
 const userSchema = new mongoose.Schema({
     username: {
         type: String,

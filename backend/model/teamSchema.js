@@ -8,13 +8,13 @@ const teamSchema = new mongoose.Schema({
     unique: true, 
     trim: true 
   },
-  // The person who created the team
+  
   owner: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User', 
     required: true 
   },
-  // An array of User IDs who are members
+  
   members: [{ 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User' 
