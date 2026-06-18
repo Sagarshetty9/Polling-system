@@ -1,7 +1,7 @@
 //Importing dependencies
 import express from "express";
 import dotenv from "dotenv";
-import connectDb from "./config/userDB.js";
+import connectDb from "./config/databaseConnection.js";
 import authRouter from "./routes/authRouter.js";
 import pollRouter from "./routes/pollRouter.js";
 import teamRouter from "./routes/teamRouter.js";
