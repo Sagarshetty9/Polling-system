@@ -65,7 +65,7 @@ export const registerController = async (req, res) => {
         const token = jwt.sign({userId: newUser._id}, process.env.JWT_SECRET);
         res.status(201).json({message: "User registered successfully", user: newUser, token: token});
     }catch (error) {
-        console.log(error);
-        res.status(500).json({message: "Internal server error", error: error.message});
+            console.error(error);
+            res.status(500).json({message: "Internal server error", error: error.message});
     }
 }

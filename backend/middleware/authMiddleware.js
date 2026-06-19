@@ -12,7 +12,7 @@ export const protect = async (req, res, next) => {
             return res.status(401).json({ message: "Authorization denied" });
         }
 
-        // Token checking krlo guyzz
+        // Verify JWT and attach decoded payload to request
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         // 3. Adding Token to the user request
@@ -21,6 +21,7 @@ export const protect = async (req, res, next) => {
         // 4. Move to the next step ()
         next();
     } catch (error) {
+        console.error('Auth middleware error:', error.message || error);
         res.status(401).json({ message: "Token is not valid" });
     }
 };

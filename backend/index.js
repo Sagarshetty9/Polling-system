@@ -1,11 +1,13 @@
 //Importing dependencies
 import express from "express";
+import {createServer} from "http";
 import dotenv from "dotenv";
 import connectDb from "./config/databaseConnection.js";
 import authRouter from "./routes/authRouter.js";
 import pollRouter from "./routes/pollRouter.js";
 import teamRouter from "./routes/teamRouter.js";
 import cors from "cors";
+import { initSocket } from "./config/socket.js";
 
 dotenv.config();
 
@@ -13,23 +15,22 @@ dotenv.config();
 //Setting up the port
 const PORT = process.env.PORT || 5000;
 
+
 //Connecting to the database
 await connectDb();
 
 //Creating the express app
 const app = express();
+const server = createServer(app);
+
+//Initializing socket
+initSocket(server);
 
 //Middleware
 app.use(express.json());
 
-// This regex allows localhost AND any subdomain of vercel.app
-const allowedOrigins = [
-  "http://localhost:5173", 
-  /\.vercel\.app$/ 
-];
 
 app.use(cors({
-  origin: allowedOrigins,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS" , "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"]
@@ -51,7 +52,7 @@ app.use("/api/polls", pollRouter);
 app.use("/api/teams", teamRouter);
 
 
-//Starting the server
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+
+server.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });

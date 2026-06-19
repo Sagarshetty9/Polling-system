@@ -3,9 +3,6 @@ import { Card, CardHeader, CardTitle, CardContent } from '../ui/card'
 import { Badge } from '../ui/badge'
 
 const Members = ({ members }) => {
-  // Always good to keep this during dev to see if members are populated or just IDs
-  console.log("Members Component members:", members);
-
   const memberList = members || [];
 
   return (

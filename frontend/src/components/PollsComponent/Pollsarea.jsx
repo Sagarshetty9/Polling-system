@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 
 const Pollsarea = ({ activePoll, onVote }) => {
-  const [minutesLeft, setMinutesLeft] = useState(null);
+  const [now, setNow] = useState(() => Date.now());
   const options = activePoll?.options || [];
   const maxVotes = options.reduce((max, option) => Math.max(max, option?.votes || 0), 0);
   const barColors = [
@@ -15,25 +15,21 @@ const Pollsarea = ({ activePoll, onVote }) => {
     "bg-pink-500/80",
   ];
 
-  const getMinutesLeft = (poll) => {
+  const getMinutesLeft = (poll, currentTime) => {
     if (!poll?.expiresAt) return null;
-    const diff = new Date(poll.expiresAt).getTime() - Date.now();
+    const diff = new Date(poll.expiresAt).getTime() - currentTime;
     return Math.max(0, Math.ceil(diff / 60000));
   };
 
   useEffect(() => {
-    if (!activePoll?.expiresAt) {
-      setMinutesLeft(null);
-      return;
-    }
-
-    setMinutesLeft(getMinutesLeft(activePoll));
     const timer = setInterval(() => {
-      setMinutesLeft(getMinutesLeft(activePoll));
+      setNow(Date.now());
     }, 60000);
 
     return () => clearInterval(timer);
-  }, [activePoll?._id, activePoll?.expiresAt]);
+  }, []);
+
+  const minutesLeft = useMemo(() => getMinutesLeft(activePoll, now), [activePoll, now]);
 
   const isEnded = useMemo(() => minutesLeft === 0, [minutesLeft]);
 
