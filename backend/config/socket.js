@@ -5,11 +5,12 @@ dotenv.config();
 let io;
 
 export const initSocket = (server) => {
-  io = new Server (server, {
+  io = new Server(server, {
     cors: {
-      origin:process.env.FRONTEND_URL || 'http://localhost:5173',
-      methods: ['GET', 'POST'],
-    },
+      origin: "http://localhost:5173", // Allows your Vite dev server
+      methods: ["GET", "POST", "PATCH", "DELETE"],
+      credentials: true
+    }
   });
 
   io.on('connection', (socket) => {

@@ -6,7 +6,7 @@ const SocketContext = createContext(null);
 export const SocketProvider = ({ children }) => {
   // Open the "phone line" to your backend port
   const socket = useMemo(() => {
-    return io('http://localhost:5000', {
+    return io('http://localhost:3000', {
       withCredentials: true
     });
   }, []);

@@ -8,10 +8,10 @@ const getApiBaseUrl = () => {
   if (typeof window !== 'undefined') {
     const protocol = window.location.protocol;
     const hostname = window.location.hostname;
-    return `${protocol}//${hostname}:5000/api`;
+    return `${protocol}//${hostname}:3000/api`;
   }
   
-  return 'http://localhost:5000/api';
+  return 'http://localhost:3000/api';
 };
 
 const apiClient = axios.create({
