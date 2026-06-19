@@ -1,14 +1,15 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import { io } from 'socket.io-client';
-import dotenv from 'dotenv';
-dotenv.config();
 
 const SocketContext = createContext(null);
 
 export const SocketProvider = ({ children }) => {
-  // Open the "phone line" to your backend port
   const socket = useMemo(() => {
-    return io(process.env.VITE_API_BASE_URL || 'http://localhost:3000', {
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || (typeof window !== 'undefined'
+      ? `${window.location.protocol}//${window.location.hostname}:3000`
+      : 'http://localhost:3000');
+
+    return io(socketUrl, {
       withCredentials: true
     });
   }, []);

@@ -2,12 +2,13 @@ import {Server} from 'socket.io';
 import dotenv from 'dotenv';
 dotenv.config();
 
+const SOCKET_ORIGIN = process.env.FRONTEND_URL?.replace(/\/+$/, "") ;
 let io;
 
 export const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: "http://localhost:5173", // Allows your Vite dev server
+      origin: SOCKET_ORIGIN,
       methods: ["GET", "POST", "PATCH", "DELETE"],
       credentials: true
     }
