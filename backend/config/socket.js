@@ -2,7 +2,7 @@ import {Server} from 'socket.io';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const SOCKET_ORIGIN = process.env.FRONTEND_URL?.replace(/\/+$/, "") ;
+const SOCKET_ORIGIN = process.env.FRONTEND_URL?.replace(/\/+$/, "") || "http://localhost:5173";
 let io;
 
 export const initSocket = (server) => {

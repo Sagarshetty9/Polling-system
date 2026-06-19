@@ -14,7 +14,7 @@ dotenv.config();
 
 //Setting up the port
 const PORT = process.env.PORT || 3000;
-const FRONTEND_URL = process.env.FRONTEND_URL?.replace(/\/+$/, "");
+const FRONTEND_URL = process.env.FRONTEND_URL?.replace(/\/+$/, "") || "http://localhost:5173";
 
 
 //Connecting to the database
@@ -32,7 +32,7 @@ app.use(express.json());
 
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
+  origin: FRONTEND_URL,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS" , "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"]
