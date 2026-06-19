@@ -21,60 +21,33 @@ const Pollspage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isCreatingPoll, setIsCreatingPoll] = useState(false);
   const [isDeletingPoll, setIsDeletingPoll] = useState(false);
-  const [socketConnected, setSocketConnected] = useState(socket ? socket.connected : false);
 
-  const sameTeam = useCallback((payload = {}) => (
-    !payload.teamId || payload.teamId.toString() === teamId?.toString()
-  ), [teamId]);
-
-  const mergeLivePoll = useCallback((livePoll, { selectPoll = false } = {}) => {
-    if (!livePoll?._id) return;
-
-    setPolls((prevPolls) => {
-      const existingPoll = prevPolls.find((poll) => poll._id === livePoll._id);
-      const nextPoll = existingPoll
-        ? { ...existingPoll, ...livePoll }
-        : livePoll;
-
-      if (!existingPoll) return [nextPoll, ...prevPolls];
-
-      return prevPolls.map((poll) => (
-        poll._id === nextPoll._id ? nextPoll : poll
-      ));
-    });
-
-    setActivePoll((currentActivePoll) => {
-      if (selectPoll) return livePoll;
-      if (currentActivePoll?._id !== livePoll._id) return currentActivePoll;
-
-      return {
-        ...currentActivePoll,
-        ...livePoll,
-        selectedOptionId: currentActivePoll.selectedOptionId,
-      };
-    });
-  }, []);
-
+  // 1. Central API Fetcher for Polls
   const fetchTeamPolls = useCallback(async ({ selectLatest = false } = {}) => {
     if (!teamId) return [];
+    try {
+      const { data } = await apiClient.get(`/polls/teamPoll/${teamId}`);
+      const fetchedPolls = data || [];
 
-    const { data } = await apiClient.get(`/polls/teamPoll/${teamId}`);
-    const fetchedPolls = data || [];
+      setPolls(fetchedPolls);
+      setActivePoll((currentActivePoll) => {
+        if (!fetchedPolls.length) return null;
+        if (selectLatest) return fetchedPolls[0];
 
-    setPolls(fetchedPolls);
-    setActivePoll((currentActivePoll) => {
-      if (!fetchedPolls.length) return null;
-      if (selectLatest) return fetchedPolls[0];
+        // Sync our currently viewed active poll with fresh database vote numbers
+        const updatedActivePoll = fetchedPolls.find(
+          (poll) => poll._id === currentActivePoll?._id
+        );
+        return updatedActivePoll || fetchedPolls[0];
+      });
 
-      const updatedActivePoll = fetchedPolls.find(
-        (poll) => poll._id === currentActivePoll?._id
-      );
-      return updatedActivePoll || fetchedPolls[0];
-    });
-
-    return fetchedPolls;
+      return fetchedPolls;
+    } catch (error) {
+      console.error("Error running background poll fetch:", error);
+    }
   }, [teamId]);
 
+  // 2. Initial Page Load Fetcher (Team details & initial polls)
   useEffect(() => {
     const fetchPageData = async () => {
       try {
@@ -82,7 +55,6 @@ const Pollspage = () => {
           apiClient.get(`/teams/myTeams/${teamId}`),
           fetchTeamPolls({ selectLatest: true }),
         ]);
-
         setTeamData(teamRes.data?.team || null);
       } catch (error) {
         console.error("Error fetching polls page data:", error);
@@ -91,82 +63,30 @@ const Pollspage = () => {
     if (teamId) fetchPageData();
   }, [teamId, fetchTeamPolls]);
 
+  // 3. Real-time Live Synchronization Listener
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !teamId) return;
 
-    const onConnect = () => {
-      setSocketConnected(true);
-      console.log('[SOCKET_DEBUG] Socket connect event received in Pollspage');
-    };
-    const onDisconnect = () => {
-      setSocketConnected(false);
-      console.log('[SOCKET_DEBUG] Socket disconnect event received in Pollspage');
-    };
+    // Join the secure team room channel
+    socket.emit("join_poll_room", teamId.toString());
 
-    setSocketConnected(socket.connected);
-
-    socket.on('connect', onConnect);
-    socket.on('disconnect', onDisconnect);
-
-    return () => {
-      socket.off('connect', onConnect);
-      socket.off('disconnect', onDisconnect);
-    };
-  }, [socket]);
-
-  useEffect(() => {
-    if (!teamId || !socket) {
-      console.log('[SOCKET_DEBUG] Pollspage: Missing teamId or socket instance', { teamId, socket: !!socket });
-      return;
-    }
-
-    const roomId = teamId.toString();
-    const joinTeamRoom = () => {
-      console.log(`[SOCKET_DEBUG] Emitting join_poll_room for room: ${roomId}`);
-      socket.emit("join_poll_room", roomId);
-    };
-    const handlePollCreated = (payload = {}) => {
-      console.log('[SOCKET_DEBUG] Received poll_created event, payload:', payload);
-      if (!sameTeam(payload)) {
-        console.log('[SOCKET_DEBUG] Event discarded: different team', { payloadTeamId: payload.teamId, activeTeamId: teamId });
-        return;
-      }
-      if (payload.poll) {
-        console.log('[SOCKET_DEBUG] Merging live poll from poll_created:', payload.poll);
-        mergeLivePoll(payload.poll, { selectPoll: true });
-        return;
-      }
-      console.log('[SOCKET_DEBUG] Fetching team polls (selectLatest: true) as backup...');
+    // When someone else votes or creates, instantly reload from the DB
+    socket.on("poll_created", () => {
       fetchTeamPolls({ selectLatest: true });
-    };
-    const handlePollVoted = (payload = {}) => {
-      console.log('[SOCKET_DEBUG] Received poll_voted event, payload:', payload);
-      if (!sameTeam(payload)) {
-        console.log('[SOCKET_DEBUG] Event discarded: different team', { payloadTeamId: payload.teamId, activeTeamId: teamId });
-        return;
-      }
-      if (payload.poll) {
-        console.log('[SOCKET_DEBUG] Merging live poll from poll_voted:', payload.poll);
-        mergeLivePoll(payload.poll);
-        return;
-      }
-      console.log('[SOCKET_DEBUG] Fetching team polls as backup...');
+    });
+
+    socket.on("poll_voted", () => {
       fetchTeamPolls();
-    };
+    });
 
-    joinTeamRoom();
-    socket.on("connect", joinTeamRoom);
-    socket.on("poll_created", handlePollCreated);
-    socket.on("poll_voted", handlePollVoted);
-
+    // Clean up channel links when leaving the view
     return () => {
-      console.log('[SOCKET_DEBUG] Cleaning up Pollspage socket listeners...');
-      socket.off("connect", joinTeamRoom);
-      socket.off("poll_created", handlePollCreated);
-      socket.off("poll_voted", handlePollVoted);
+      socket.off("poll_created");
+      socket.off("poll_voted");
     };
-  }, [teamId, socket, fetchTeamPolls, mergeLivePoll, sameTeam]);
+  }, [teamId, socket, fetchTeamPolls]);
 
+  // 4. Action Handler: Submitting a Local Vote
   const handleVote = async (optionId) => {
     try {
       if (!activePoll?._id || !optionId) return;
@@ -184,6 +104,7 @@ const Pollspage = () => {
     }
   };
 
+  // 5. Action Handler: Creating a New Poll
   const handleCreatePoll = async (payload) => {
     try {
       if (!teamId) return false;
@@ -195,7 +116,6 @@ const Pollspage = () => {
         if (exists) {
           return prev.map((poll) => (poll._id === createdPoll._id ? createdPoll : poll));
         }
-
         return [createdPoll, ...prev];
       });
       setActivePoll(createdPoll);
@@ -210,6 +130,7 @@ const Pollspage = () => {
     }
   };
 
+  // 6. Action Handler: Deordinating a Poll
   const handleDeletePoll = async () => {
     try {
       if (!activePoll?._id) return;
@@ -231,6 +152,7 @@ const Pollspage = () => {
 
   return (
     <div className="container mx-auto max-w-7xl space-y-6 px-4 py-6">
+      {/* Top Utility Nav Card */}
       <Card className="border shadow-sm">
         <CardHeader className="relative py-5">
           <Button
@@ -257,13 +179,14 @@ const Pollspage = () => {
           <CardTitle className="text-center text-base tracking-widest uppercase flex items-center justify-center gap-2">
             <span>Team {teamData?.teamName || "Loading..."}</span>
             <span 
-              className={`inline-block size-2 rounded-full ${socketConnected ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} 
-              title={socketConnected ? 'Real-time connected' : 'Real-time disconnected'} 
+              className={`inline-block size-2 rounded-full ${socket ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} 
+              title={socket ? 'Real-time pipeline online' : 'Real-time offline'} 
             />
           </CardTitle>
         </CardHeader>
       </Card>
 
+      {/* Creation Modal */}
       <Polldialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
@@ -272,6 +195,7 @@ const Pollspage = () => {
         teamName={teamData?.teamName}
       />
 
+      {/* Main Column Framework Grid */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 items-start">
         <aside className="lg:col-span-3">
           <Members members={teamData?.members || []} />
@@ -282,9 +206,8 @@ const Pollspage = () => {
         </main>
 
         <aside className="lg:col-span-3">
-         <Polls polls={polls} activePollId={activePoll?._id} onSelectPoll={setActivePoll} />
+          <Polls polls={polls} activePollId={activePoll?._id} onSelectPoll={setActivePoll} />
         </aside>
-
       </div>
     </div>
   );
