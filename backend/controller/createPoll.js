@@ -1,4 +1,5 @@
-import Poll from '../model/pollingSchema.js';
+import { getIO } from '../config/socket.js';
+import Poll from '../model/pollingSchema.js'; // Ensure correct imports matching your schemas
 import Team from '../model/teamSchema.js';
 
 
@@ -72,8 +73,9 @@ export const getTeamPolls = async (req, res) => {
 
 
 
+//VOTE IN A POLL CONTROLLER
 
-//VOTE POLL OPTION CONTROLLER
+
 
 export const votePollOption = async (req, res) => {
   try {
@@ -132,8 +134,21 @@ export const votePollOption = async (req, res) => {
       });
     }
 
+    // 1. Save data to MongoDB
     await poll.save();
 
+    // 2. SOCKET TRIGGER: Broadcast the update event to the team's room
+    try {
+      const io = getIO();
+      // Emitting to a room tied to the team ID means only teammates see the refresh live
+      io.to(poll.teamId.toString()).emit('poll_voted', { pollId, teamId: poll.teamId });
+    } catch (socketError) {
+      // We wrap this in a try-catch so that if the socket server has an issue, 
+      // it doesn't crash the entire HTTP response or rollback the database vote.
+      console.error("Socket signaling failed:", socketError.message);
+    }
+
+    // 3. Send final HTTP response
     const updatedPoll = poll.toObject();
     updatedPoll.selectedOptionId = optionId.toString();
 
