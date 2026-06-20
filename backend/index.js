@@ -9,14 +9,6 @@ import teamRouter from "./routes/teamRouter.js";
 import cors from "cors";
 import { initIO } from './config/socket.js';
 
-// Add this at the absolute top of backend/index.js right after imports:
-process.on('uncaughtException', (err) => {
-  console.error("=========================================");
-  console.error("🔥 ACTUAL CRASH SOURCE DETECTED 🔥");
-  console.error(err.stack); // 👈 This prints the EXACT file name and line number
-  console.error("=========================================");
-  process.exit(1);
-});
 
 dotenv.config();
 
@@ -39,7 +31,6 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-app.options('*', cors());
 
 app.use(express.json());
 
