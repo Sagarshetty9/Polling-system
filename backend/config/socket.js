@@ -27,3 +27,10 @@ export const initIO = (server) => {
 
   return io;
 };
+
+export const getIO = () => {
+  if (!io) {
+    throw new Error('Socket.io not initialized. Call initIO(server) first.');
+  }
+  return io;
+};
