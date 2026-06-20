@@ -1,4 +1,4 @@
-import { getIO } from '../config/socket.js';
+import { initIO } from '../config/socket.js';
 import Poll from '../model/pollingSchema.js'; // Ensure correct imports matching your schemas
 import Team from '../model/teamSchema.js';
 
