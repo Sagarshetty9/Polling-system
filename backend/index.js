@@ -9,6 +9,15 @@ import teamRouter from "./routes/teamRouter.js";
 import cors from "cors";
 import { initIO } from './config/socket.js';
 
+// Add this at the absolute top of backend/index.js right after imports:
+process.on('uncaughtException', (err) => {
+  console.error("=========================================");
+  console.error("🔥 ACTUAL CRASH SOURCE DETECTED 🔥");
+  console.error(err.stack); // 👈 This prints the EXACT file name and line number
+  console.error("=========================================");
+  process.exit(1);
+});
+
 dotenv.config();
 
 // Setting up the port
@@ -42,20 +51,9 @@ app.get("/", (req, res) => {
     res.send("Hello World");
 });
 
-try {
-  // Auth routes
-  app.use("/api/auth", authRouter);
-
-  // Poll routes
-  app.use("/api/polls", pollRouter);
-
-  // Team routes
-  app.use("/api/teams", teamRouter);
-} catch (error) {
-  console.error("❌ CRITICAL ROUTE TYPO DETECTED!");
-  console.error(error);
-  process.exit(1);
-}
+app.use("/api/auth", authRouter);
+app.use("/api/polls", pollRouter);
+app.use("/api/teams", teamRouter);
 
 // Start Server listener
 server.listen(PORT, () => {
