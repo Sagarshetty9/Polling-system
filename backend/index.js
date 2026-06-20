@@ -42,9 +42,20 @@ app.get("/", (req, res) => {
     res.send("Hello World");
 });
 
-app.use("/api/auth", authRouter);
-app.use("/api/polls", pollRouter);
-app.use("/api/teams", teamRouter);
+try {
+  // Auth routes
+  app.use("/api/auth", authRouter);
+
+  // Poll routes
+  app.use("/api/polls", pollRouter);
+
+  // Team routes
+  app.use("/api/teams", teamRouter);
+} catch (error) {
+  console.error("❌ CRITICAL ROUTE TYPO DETECTED!");
+  console.error(error);
+  process.exit(1);
+}
 
 // Start Server listener
 server.listen(PORT, () => {
