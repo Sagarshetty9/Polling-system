@@ -23,10 +23,32 @@ export const SocketProvider = ({ children }) => {
   const socket = useMemo(() => {
     const socketUrl = getSocketUrl();
 
-    return io(socketUrl, {
+    console.log("Socket URL:", socketUrl);
+
+    const s = io(socketUrl, {
       withCredentials: true,
-      path: '/socket.io'
+      path: '/socket.io',
+      transports: ['websocket', 'polling']
     });
+
+    // 🔥 CONNECTION DEBUGGING
+    s.on('connect', () => {
+      console.log('CONNECTED:', s.id);
+    });
+
+    s.on('connect_error', (err) => {
+      console.log('CONNECT ERROR:', err.message);
+    });
+
+    s.on('disconnect', (reason) => {
+      console.log('DISCONNECTED:', reason);
+    });
+
+    s.onAny((event, ...args) => {
+      console.log('EVENT:', event, args);
+    });
+
+    return s;
   }, []);
 
   return (
@@ -36,5 +58,4 @@ export const SocketProvider = ({ children }) => {
   );
 };
 
-// This lets us easily grab the socket phone line in any component
 export const useSocket = () => useContext(SocketContext);
