@@ -24,12 +24,14 @@ export const initIO = (server) => {
     allowEIO3: true
   });
 
-  return io;
-};
+  // 🔥 ADD THIS PART
+  io.on("connection", (socket) => {
+    console.log("User connected:", socket.id);
 
-export const getIO = () => {
-  if (!io) {
-    throw new Error('Socket.io not initialized. Call initIO(server) first.');
-  }
+    socket.on("disconnect", () => {
+      console.log("User disconnected:", socket.id);
+    });
+  });
+
   return io;
 };
