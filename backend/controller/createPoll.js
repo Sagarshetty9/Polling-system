@@ -39,34 +39,28 @@ export const createPoll = async (req, res) => {
     const { teamId } = req.params;
     const { question, options = [] } = req.body;
 
-    // 1. Basic Validation
     if (!question || options.length < 2) {
-      return res.status(400).json({ message: "Invalid question or options" });
+      return res.status(400).json({ message: "Invalid poll" });
     }
 
-    // 2. Save the Poll to MongoDB
     const poll = new Poll({
       teamId,
       question: question.trim(),
-      options: options.map(opt => ({ text: opt })),
-      creator: req.user.userId
+      options: options.map((o) => ({ text: o })),
+      creator: req.user.userId,
     });
+
     await poll.save();
 
-    // 3. Simple Socket Broadcast
-    try {
-      const io = getIO();
-      
-      // We send a message called 'poll_created' ONLY to people inside this teamId room
-      io.to(teamId.toString()).emit('poll_created', { teamId });
-    } catch (socketError) {
-      console.error("Socket failed, but database saved successfully:", socketError.message);
-    }
+    const io = getIO();
 
-    // 4. Respond to the person who clicked create
+    io.to(teamId.toString()).emit("poll_created", {
+      poll,
+    });
+
     res.status(201).json(poll);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -97,53 +91,52 @@ export const votePollOption = async (req, res) => {
     const { optionId } = req.body;
     const userId = req.user.userId;
 
-    // 1. Fetch Poll and verify existence
     const poll = await Poll.findById(pollId);
-    if (!poll) return res.status(404).json({ message: 'Poll not found' });
+    if (!poll) return res.status(404).json({ message: "Poll not found" });
 
     const selectedOption = poll.options.id(optionId);
-    if (!selectedOption) return res.status(404).json({ message: 'Option not found' });
+    if (!selectedOption)
+      return res.status(404).json({ message: "Option not found" });
 
-    // 2. Process Vote (Switching vs New Vote)
     if (!poll.userVotes) poll.userVotes = [];
-    const existingVote = poll.userVotes.find(v => v.userId.toString() === userId);
+
+    const existingVote = poll.userVotes.find(
+      (v) => v.userId.toString() === userId.toString()
+    );
 
     if (existingVote) {
-      const previousOptionId = existingVote.optionId?.toString();
-      
-      // If user is changing their vote to a new option
-      if (previousOptionId !== optionId.toString()) {
-        const previousOption = poll.options.id(previousOptionId);
-        if (previousOption && previousOption.votes > 0) previousOption.votes -= 1;
-        
+      const prevOption = poll.options.id(existingVote.optionId);
+
+      if (prevOption && prevOption.votes > 0) {
+        prevOption.votes -= 1;
+      }
+
+      if (existingVote.optionId.toString() !== optionId.toString()) {
         selectedOption.votes += 1;
         existingVote.optionId = optionId;
       }
     } else {
-      // brand new vote
       selectedOption.votes += 1;
       poll.userVotes.push({ userId, optionId });
     }
 
-    // 3. Save to Database
     await poll.save();
 
-    // 4. Simple Socket Alert
-    try {
-      const io = getIO();
-      // Inform the team room that a vote happened
-      io.to(poll.teamId.toString()).emit('poll_voted', { pollId: poll._id });
-    } catch (socketError) {
-      console.error("Socket alert failed:", socketError.message);
-    }
+    // 🔥 IMPORTANT: reload fresh data
+    const updatedPoll = await Poll.findById(pollId);
 
-    // 5. Send raw updated poll back to the user
-    res.status(200).json(poll);
+    const io = getIO();
+
+    // ✅ BROADCAST FULL UPDATE TO ROOM
+    io.to(poll.teamId.toString()).emit("poll_voted", {
+      poll: updatedPoll,
+    });
+
+    res.status(200).json(updatedPoll);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 
 
