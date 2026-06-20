@@ -3,14 +3,29 @@ import { io } from 'socket.io-client';
 
 const SocketContext = createContext(null);
 
+const getSocketUrl = () => {
+  if (import.meta.env.VITE_SOCKET_URL) {
+    return import.meta.env.VITE_SOCKET_URL;
+  }
+
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '');
+  }
+
+  if (typeof window !== 'undefined') {
+    return `${window.location.protocol}//${window.location.hostname}:3000`;
+  }
+
+  return 'http://localhost:3000';
+};
+
 export const SocketProvider = ({ children }) => {
   const socket = useMemo(() => {
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || (typeof window !== 'undefined'
-      ? `${window.location.protocol}//${window.location.hostname}:3000`
-      : 'http://localhost:3000');
+    const socketUrl = getSocketUrl();
 
     return io(socketUrl, {
-      withCredentials: true
+      withCredentials: true,
+      path: '/socket.io'
     });
   }, []);
 

@@ -3,26 +3,25 @@ import { Server } from 'socket.io';
 let io;
 
 export const initIO = (server) => {
+  const frontendUrl = process.env.FRONTEND_URL?.replace(/\/+$/, '');
   const allowedOrigins = [
-    'https://polling-system-phi-seven.vercel.app',
-    'https://polling-system-phi-seven.vercel.app/'
-  ];
+    frontendUrl,
+    'https://polling-system-phi-seven.vercel.app'
+  ].filter(Boolean);
 
   io = new Server(server, {
     cors: {
-      origin: function (origin, callback) {
-        // Allow local development or if origin matches our approved list / env variable
-        if (!origin || allowedOrigins.indexOf(origin) !== -1 || origin === process.env.FRONTEND_URL) {
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
           callback(null, true);
         } else {
-          callback(new Error('Not allowed by CORS on Socket'));
+          callback(new Error(`Origin ${origin} not allowed by Socket.IO CORS`));
         }
       },
       methods: ["GET", "POST", "PATCH", "DELETE"],
       credentials: true
     },
-    // Adding this stabilizes the connection handshake over proxies like Render's
-    allowEIO3: true 
+    allowEIO3: true
   });
 
   return io;
