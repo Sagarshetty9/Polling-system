@@ -7,7 +7,7 @@ import authRouter from "./routes/authRouter.js";
 import pollRouter from "./routes/pollRouter.js";
 import teamRouter from "./routes/teamRouter.js";
 import cors from "cors";
-import { initSocket } from "./config/socket.js";
+import { initIO } from './config/socket.js';
 
 dotenv.config();
 
@@ -25,7 +25,7 @@ const app = express();
 const server = createServer(app);
 
 //Initializing socket
-initSocket(server);
+initIO(server);
 
 //Middleware
 app.use(express.json());
