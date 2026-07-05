@@ -1,3 +1,6 @@
+//Starting up a socket server
+
+
 import { Server } from "socket.io";
 
 let io;
@@ -23,7 +26,7 @@ export const initIO = (server) => {
     },
   });
 
-  // ✅ ROOM JOIN + DEBUG
+  //  ROOM JOIN 
   io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
 

@@ -31,7 +31,7 @@ export const SocketProvider = ({ children }) => {
       transports: ['websocket', 'polling']
     });
 
-    // 🔥 CONNECTION DEBUGGING
+    // CONNECTION DEBUGGING
     s.on('connect', () => {
       console.log('CONNECTED:', s.id);
     });

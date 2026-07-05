@@ -88,9 +88,9 @@ const Pollspage = () => {
   useEffect(() => {
     if (!socket || !teamId) return;
 
-    console.log("🔌 Joining team room:", teamId);
+    console.log("Joining team room:", teamId);
 
-    // ✅ MUST MATCH BACKEND: join_team
+    
     socket.emit("join_team", teamId.toString());
 
     socket.on("connect", () => {
@@ -103,12 +103,12 @@ const Pollspage = () => {
     });
 
     socket.on("poll_voted", (data) => {
-      console.log("📊 poll_voted:", data);
+      console.log("poll_voted:", data);
       fetchTeamPolls();
     });
 
     socket.on("connect_error", (err) => {
-      console.log("🔴 socket error:", err.message);
+      console.log("socket error:", err.message);
     });
 
     return () => {

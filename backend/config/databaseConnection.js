@@ -1,3 +1,5 @@
+//Establishing Connection with DB using mongoose
+
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 

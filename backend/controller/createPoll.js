@@ -1,5 +1,7 @@
+//Logic for Polls system
+
 import { getIO } from '../config/socket.js';
-import Poll from '../model/pollingSchema.js'; // Ensure correct imports matching your schemas
+import Poll from '../model/pollingSchema.js'; 
 import Team from '../model/teamSchema.js';
 
 // Helper to normalize poll data for frontend (convert ObjectIds to strings and find user vote)

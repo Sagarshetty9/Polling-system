@@ -1,4 +1,4 @@
-
+//Poll ka blueprint
 
 import mongoose from 'mongoose';
 

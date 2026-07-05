@@ -1,3 +1,5 @@
+//Logic for Team systems
+
 import Team from "../model/teamSchema.js";
 import User from "../model/userSchema.js";
 

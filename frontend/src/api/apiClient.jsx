@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+//global api call
+
 const getApiBaseUrl = () => {
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL;
